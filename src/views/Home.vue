@@ -1,5 +1,5 @@
 <template>
-  <v-content class="body">
+  <v-main class="body">
     <v-container
       id="container"
       fluid
@@ -28,7 +28,7 @@
 
           <v-card-text id="welcome-text">
             <v-list-item-subtitle class="center">
-              Cozy at Home - via Ambient Intelligence
+              Safe Home - via Ambient Intelligence
             </v-list-item-subtitle>
 
             <p
@@ -47,24 +47,6 @@
 
           <v-card-actions class="align-center">
             <div
-              v-if="hasSetupSystem"
-              class="skip-link"
-            >
-              <v-btn
-                rounded
-                color="pink darken-4"
-                dark
-                data-cy="timeline"
-                class="ma-2 white--text"
-                :to="'timeline'"
-                id="btn-timeline"
-              >
-                Open Edge Console
-              </v-btn>
-            </div>
-
-            <div
-              v-else
               class="skip-link"
             >
               <v-btn
@@ -95,7 +77,7 @@
         </v-col>
       </v-row>
     </v-container>
-  </v-content>
+  </v-main>
 </template>
 
 <script>
@@ -121,7 +103,7 @@ export default {
     const remotePeerId = this.edgePeerId
 
     if (setupStatus || remotePeerId) {
-      this.hasSetupSystem = true
+      this.$router.push('timeline')
     }
   }
 }

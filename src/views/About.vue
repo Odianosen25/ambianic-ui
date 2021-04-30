@@ -15,7 +15,7 @@
         >
           <amb-list-item
             id="about-title"
-            title="Cozy at Home"
+            title="Safe Home"
             subtitle="via Ambient Intelligence"
           />
         </v-layout>
@@ -49,7 +49,7 @@
         </v-layout>
         <v-card-actions>
           <v-btn
-            outlined
+            text
             color="info"
             :to="'timeline'"
             id="btn-timeline"
@@ -58,7 +58,7 @@
           </v-btn>
           <v-spacer />
           <v-btn
-            outlined
+            text
             color="info"
             :to="'settings'"
             id="btn-settings"

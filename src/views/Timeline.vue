@@ -4,56 +4,6 @@
     justify="space-around"
   >
     <v-col
-      v-if="!isEdgeConnected"
-      style="max-width: 400px;"
-      align="center"
-      justify="center"
-      cols="12"
-      class="pa-0 ma-0 fill-height"
-    >
-      <v-card
-        class="mx-auto"
-        data-cy="connectioncard"
-        outlined
-      >
-        <v-card-title>
-          <v-icon
-            slot="icon"
-            size="36"
-            color="pink"
-          >
-            mdi-wifi-off
-          </v-icon>
-          Connecting to Ambianic Edge device...
-          <v-progress-linear
-            color="info"
-            indeterminate
-            :size="50"
-            :width="7"
-          />
-        </v-card-title>
-
-        <v-card-text>
-          In most cases, connecting to your edge device is automatic.
-          If you are not connected within a few moments, click the
-          button below to review settings.
-        </v-card-text>
-
-        <v-card-actions>
-          <v-btn
-            outlined
-            color="accent"
-            id="btn-settings"
-            data-cy="settings"
-            to="/settings"
-          >
-            Connection Settings
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-col>
-    <v-col
-      v-else
       style="max-width: 400px;"
       align="center"
       justify="center"
@@ -65,9 +15,9 @@
         class="pa-0 ma-0"
       >
         <infinite-loading
-          v-if="!isBottomSpinnerVisible"
           direction="top"
           @infinite="infiniteHandlerTop"
+          v-observe-visibility="topSpinnerVisibilityChanged"
         >
           <span slot="no-more">
             There are no new timeline events.
@@ -86,33 +36,33 @@
               v-if="sample.args.thumbnail_file_name"
               :src="imageURL[sample.args.id]"
               class="white--text align-start"
-              alt="Object Detection"
+              alt="Detection Event"
               contain
               @load="setImageLoaded(index)"
+              lazy-src="/img/lazy-load-bg.gif"
             >
+              <template #placeholder>
+                    <v-row
+                    class="fill-height ma-0"
+                    align="center"
+                    justify="center"
+                    >
+                    <v-progress-circular
+                        indeterminate
+                        color="info lighten-2"
+                    />
+                    </v-row>
+              </template>
               <v-row
                 class="fill-height ma-0"
                 align="start"
                 justify="start"
               >
-                <template #placeholder>
-                  <v-row
-                    class="fill-height ma-0"
-                    align="center"
-                    justify="center"
-                  >
-                    <v-progress-circular
-                      indeterminate
-                      color="info lighten-2"
-                    />
-                  </v-row>
-                </template>
                 <template
                   v-if="isImageLoaded[index]"
                 >
                   <detection-boxes
                     :detections="sample.args.inference_result"
-                    :tensor_image_size="sample.args.inference_meta.tensor_image_size"
                   />
                   <v-avatar
                     :color="eventColor(sample)"
@@ -145,9 +95,9 @@
                 >
                   <v-col cols="7">
                     <v-tooltip bottom>
-                      <template #activator="{ on }">
+                      <template #activator="{ on: tooltip }">
                         <v-btn
-                          v-on="on"
+                          v-on="tooltip"
                           fab
                           color="success lighten-2"
                           class="mx-2"
@@ -158,9 +108,9 @@
                       <span>Looks fine</span>
                     </v-tooltip>
                     <v-tooltip bottom>
-                      <template #activator="{ on }">
+                      <template #activator="{ on: tooltip }">
                         <v-btn
-                          v-on="on"
+                          v-on="tooltip"
                           color="error lighten-2"
                           fab
                           class="mx-2"
@@ -173,10 +123,10 @@
                   </v-col>
                   <v-col cols="1">
                     <v-tooltip bottom>
-                      <template #activator="{ on }">
+                      <template #activator="{ on: tooltip }">
                         <v-btn
                           icon
-                          v-on="on"
+                          v-on="tooltip"
                         >
                           <v-icon>mdi-heart</v-icon>
                         </v-btn>
@@ -184,10 +134,10 @@
                       <span>Save to Favorites</span>
                     </v-tooltip>
                     <v-tooltip bottom>
-                      <template #activator="{ on }">
+                      <template #activator="{ on: tooltip }">
                         <v-btn
                           icon
-                          v-on="on"
+                          v-on="tooltip"
                         >
                           <v-icon>mdi-pen</v-icon>
                         </v-btn>
@@ -195,10 +145,10 @@
                       <span>Edit event details</span>
                     </v-tooltip>
                     <v-tooltip bottom>
-                      <template #activator="{ on }">
+                      <template #activator="{ on: tooltip }">
                         <v-btn
                           icon
-                          v-on="on"
+                          v-on="tooltip"
                         >
                           <v-icon>mdi-share-variant</v-icon>
                         </v-btn>
@@ -257,7 +207,7 @@
         </v-list-item>
         <infinite-loading
           @infinite="infiniteHandlerBottom"
-          v-observe-visibility="bottomSpinnerVisibilityChanged"
+          v-if="!isTopSpinnerVisible"
         >
           <span slot="no-more">
             There are no more timeline events.
@@ -268,9 +218,9 @@
   </v-row>
 </template>
 <style lang="stylus" scoped>
-  .see-thru {
-    opacity: 0.8
-  }
+.see-thru {
+  opacity: 0.8
+}
 </style>
 <script>
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
@@ -285,11 +235,8 @@ import {
   PEER_CONNECTED,
   NEW_REMOTE_PEER_ID
 } from '@/store/mutation-types'
-
 Vue.use(VueObserveVisibility)
-
 const PAGE_SIZE = 5
-
 export default {
   data () {
     return {
@@ -298,11 +245,11 @@ export default {
       imageURL: {}, // map[id, fullURL] - maps unique event id to their full thumbnail URLs
       isImageLoaded: [],
       on: true,
-      isBottomSpinnerVisible: false // flags whether the timeline is in the process of loading data
+      isTopSpinnerVisible: false // flags whether the timeline is in the process of loading data
     }
   },
   created () {
-    this.initEdgeAPI()
+    this.edgeAPI = new EdgeAPI(this.pnp)
     this.pnpUnsubscribe = this.$store.subscribe((mutation, state) => {
       if (mutation.type === NEW_REMOTE_PEER_ID) {
         // eslint-disable-next-line
@@ -310,6 +257,7 @@ export default {
         // eslint-disable-next-line
         console.debug('Clearing event timeline received from previous Peer ID')
         this.clearTimeline = true
+        this.isTopSpinnerVisible = true // enable auto refresh
       }
     })
   },
@@ -332,9 +280,6 @@ export default {
     })
   },
   methods: {
-    initEdgeAPI () {
-      this.edgeAPI = new EdgeAPI(this.pnp)
-    },
     setImageLoaded (index) {
       this.$set(this.isImageLoaded, index, true)
       // eslint-disable-next-line
@@ -345,20 +290,32 @@ export default {
         this.$set(this.imageURL, id, fullImageURL)
       })
     },
+    async fetchTimelinePageUntilSuccess (pageno) {
+      // keep trying to fetch a timeline page until success
+      var timelineEvents
+      do {
+        try {
+          timelineEvents = await this.edgeAPI.getTimelinePage(pageno)
+        } catch (error) {
+          console.info('Unable to feetch timeline page. Will keep trying.', error) // eslint-disable-line no-console
+          await new Promise(resolve => setTimeout(resolve, 2000)) // sleep for 2 seconds
+        }
+      } while (timelineEvents === undefined)
+      console.debug('fetchTimelinePageUntilSuccess received data', { timelineEvents }) // eslint-disable-line no-console
+      return timelineEvents
+    },
     async getTopTimelinePage () {
       // get a page with the most recent timeline events
-      const timelineEvents = await this.edgeAPI.getTimelinePage(1)
-      console.debug('getTopTimelinePage received data', { timelineEvents }) // eslint-disable-line no-console
+      const timelineEvents = await this.fetchTimelinePageUntilSuccess(1)
       return timelineEvents
     },
-    async getNextTimelinePage () {
-      const timelineEvents = await this.edgeAPI.getTimelinePage(this.timeline.length / PAGE_SIZE + 1)
-      console.debug('getNextTimelinePage received data', { timelineEvents }) // eslint-disable-line no-console
+    async getBottomTimelinePage () {
+      const timelineEvents = await this.fetchTimelinePageUntilSuccess(this.timeline.length / PAGE_SIZE + 1)
       return timelineEvents
     },
-    async bottomSpinnerVisibilityChanged (isVisible, entry) {
-      this.isBottomSpinnerVisible = isVisible
-      console.debug(`bottomSpinnerVisibilityChanged: ${isVisible}`) // eslint-disable-line no-console
+    async topSpinnerVisibilityChanged (isVisible, entry) {
+      this.isTopSpinnerVisible = isVisible
+      console.debug(`topSpinnerVisibilityChanged: ${isVisible}`) // eslint-disable-line no-console
     },
     async infiniteHandlerTop ($state) {
       try {
@@ -374,17 +331,15 @@ export default {
           // console.debug('new timeline events: ', data.timeline.length)
           // eslint-disable-next-line
           // console.log('timeline slice: ' + JSON.stringify(data.timeline))
-
           // remove any of events that have already been shown in the current timeline
           let newEvents = data.timeline
           if (this.timeline.length > 0) {
             newEvents = data.timeline.filter(
               (event, index) =>
                 Date.parse(this.timeline[0].args.datetime) <
-                Date.parse(event.args.datetime)
+                    Date.parse(event.args.datetime)
             )
           }
-
           // update full image URLs
           newEvents.forEach(
             (sample, index) =>
@@ -410,7 +365,7 @@ export default {
           this.timeline.length = 0
           this.clearTimeline = false
         }
-        const data = await this.getNextTimelinePage()
+        const data = await this.getBottomTimelinePage()
         console.debug('Infinite handler received Bottom timeline page', { data }) // eslint-disable-line no-console
         // Are there any more timeline events left?
         if (data && data.timeline && data.timeline.length > 0) {

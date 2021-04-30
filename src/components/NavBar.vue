@@ -7,7 +7,6 @@
     <v-app-bar
       app
       color="blue darken-3"
-      dark
     >
       <v-toolbar-title
         style="width: 300px"
@@ -19,6 +18,23 @@
         />
         <span class="hidden-sm-and-down">Ambianic</span>
       </v-toolbar-title>
+
+      <nav-button
+        data-cy="timeline-icon"
+        icon="history"
+        to="timeline"
+      />
+
+      <nav-button
+        data-cy="download-off"
+        icon="download-off"
+        color="warning"
+        v-if="!isEdgeConnected"
+        to="edge-connect"
+      />
+
+      <!-- Future navbar icons
+
       <v-text-field
         id="searchbar"
         flat
@@ -30,38 +46,24 @@
       />
       <v-spacer />
 
-      <amb-button
-        with-badge
-        data-cy="download-off"
-        is-icon
-        icon="download-off"
-        btn-color="secondary"
-        v-if="!isEdgeConnected"
-        @click="$router.push('edge-connect')"
-      />
-
-      <!-- test -->
-      <amb-button
+      <nav-button
         with-badge
         data-cy="heart"
-        is-icon
         icon="heart"
-        btn-color="pink lighten-2"
         :badge-content="newFavorites"
         :badge-value="newFavorites"
       />
 
-      <amb-button
+      <nav-button
         with-badge
         data-cy="bell"
-        is-icon
         icon="bell"
         :badge-content="newAlerts"
         :badge-value="newAlerts"
       />
+      -->
 
-      <amb-button
-        is-icon
+      <nav-button
         data-cy="about"
         to="about"
       >
@@ -74,7 +76,7 @@
             alt="Ambianic.ai logo"
           />
         </v-avatar>
-      </amb-button>
+      </nav-button>
     </v-app-bar>
 
     <!-- drawer -->
@@ -175,7 +177,7 @@ import {
 export default {
   name: 'NavBar',
   components: {
-    AmbButton: () => import('./shared/Button.vue')
+    NavButton: () => import('./shared/Button.vue')
   },
   data: () => ({
     dialog: false,
@@ -185,7 +187,7 @@ export default {
     newAlerts: 2,
     logo: '../assets/logo5.svg',
     items: [
-      { icon: 'history', color: 'warning', text: 'Timeline', link: '/timeline' },
+      { icon: 'history', text: 'Timeline', link: '/timeline' },
       // { icon: 'mdi-account-heart-outline', text: 'People', link: '/people' },
       // class: 'hidden-sm-and-down' ensures that an item is not shown
       // on small screens. For example flows are only visible on screens with
@@ -213,10 +215,10 @@ export default {
       // },
       // { icon: 'mdi-video-input-antenna', text: 'Connect', link: '/edge-connect' },
       // { icon: 'mdi-video-input-antenna', text: 'Connect Remote', link: '/remote-edge-connection' },
-      { icon: 'settings', color: 'blue lighten-3', text: 'Settings', link: '/settings' },
-      { icon: 'chat_bubble', color: 'accent', text: 'Send feedback', link: '/feedback' },
-      { icon: 'help', color: 'indigo lighten-2', text: 'Help', link: '/help' },
-      { icon: 'info', color: 'info', text: 'About Ambianic', link: '/about' }
+      { icon: 'settings', text: 'Settings', link: '/settings' },
+      { icon: 'chat_bubble', text: 'Send feedback', link: '/feedback' },
+      { icon: 'help', text: 'Help', link: '/help' },
+      { icon: 'info', text: 'About Ambianic', link: '/about' }
     ]
   }),
   computed: {
